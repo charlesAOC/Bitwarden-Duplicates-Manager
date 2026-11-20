@@ -1,0 +1,83 @@
+
+import sys
+import json
+
+TYPE = 1    # 1 for logins | 2 for notes
+
+# get the data from a file
+def getFileData(filename : str) -> list[dict]:
+    with open(filename, "r") as file:
+        result = json.load(file)
+
+    result = result.get("items")
+    
+    return result
+
+
+# filter out non-login data
+def filterTypes(lines: list[dict]) -> list[dict]:
+    return [i for i in lines if i.get('type') == TYPE]
+
+
+#sort list items by URI
+def sortByURI(lines: list[dict]) -> list[dict]:
+    return sorted(lines, key=getURI)
+
+
+# find all URI duplictes. return them as list
+def groupByURI(lines: list[dict]) -> list[dict]:
+    duplicates = []
+    outer = 0
+
+    while outer < len(lines) - 1:
+        added = False
+        space = len(getURI(lines[outer]))
+        inner = outer + 1
+
+        while inner < len(lines) and getURI(lines[inner]).startswith(getURI(lines[outer])):
+            # add comparator only on the first match
+            if not added:
+                duplicates.append(lines[outer])    
+
+            duplicates.append(lines[inner])
+            # printGroups(added, getURI(lines[outer]))
+            added = True
+
+            inner = inner + 1
+
+        outer = inner                  
+
+    return duplicates    
+
+
+def printGroups(added: bool, URI: str):
+    print(f"{URI if not added else " " * len(URI)} - {URI}", "\n")
+
+
+#return the URI of a list item~~
+def getURI(line: dict) -> str:
+    return line.get("login").get("uris")[0].get("uri")
+
+
+if __name__ == '__main__':
+    # retrieve args
+    args = sys.argv[1:]  # Exclude the script name
+    print("Arguments:", args)
+    fileName = args[0]
+
+    # open file (json) and store details in a list 2x2
+    lines = getFileData(fileName)
+    print(len(lines))
+
+    # filter out all type ones
+    lines: list[dict] = filterTypes(lines)
+    print(len(lines))
+    
+    # sort by login.uris.uri
+    lines = sortByURI(lines)
+    print(len(lines))
+        
+
+    # group by URI
+    duplicates = groupByURI(lines)   
+    print(f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
