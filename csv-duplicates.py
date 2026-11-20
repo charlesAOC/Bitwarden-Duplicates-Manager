@@ -139,8 +139,7 @@ def printDuplicatesHelper(list: list[dict]):
 if __name__ == '__main__':
     # retrieve args
     args = sys.argv[1:]  # Exclude the script name
-    # fileName = args[0]
-    fileName = "bitwarden_export_20261120010454.json"
+    fileName = args[0]
 
     # open file (json) and store details in a list 2x2
     lines = getFileData(fileName)
