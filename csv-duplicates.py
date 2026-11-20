@@ -6,7 +6,8 @@ TYPE = 1    # 1 for logins | 2 for notes
 USERNAME = 'username'
 PASSWORD = 'password'
 ID = 'id'
-aa = '1ba00727-d416-4c69-985e-b4fc00781baa'
+IMPORTANT_KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
+PRINT_DUPLICATES = True     # set to false to print list of non duplicates
 
 # get the data from a file
 def getFileData(filename : str) -> list[dict]:
@@ -93,8 +94,8 @@ def groupDuplicateIDs(list: list[dict]) -> list[int]:
         if inner < len(lines): user2:dict = lines[inner].get("login")
 
         while inner < len(lines) and equals(user1, user2):
-            if lines[inner].get(ID) == aa or lines[outer].get(ID) == aa:
-                duplicates.append(lines[outer].get(ID) if lines[inner].get(ID) == aa else lines[inner].get(ID) == aa  )
+            if lines[inner].get(ID) == IMPORTANT_KEY or lines[outer].get(ID) == IMPORTANT_KEY:
+                duplicates.append(lines[outer].get(ID) if lines[inner].get(ID) == IMPORTANT_KEY else lines[inner].get(ID) == IMPORTANT_KEY  )
             else: duplicates.append(lines[inner].get(ID))
             inner = inner + 1
             if inner < len(lines): user2 = lines[inner].get("login")
@@ -104,8 +105,12 @@ def groupDuplicateIDs(list: list[dict]) -> list[int]:
     return duplicates 
 
 # prints the list of duplicate accounts
-def printDUplicates(lines: list[dict], duplicates: list[int]):
-    [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines if x.get(ID) in duplicates]
+def printDuplicates(lines: list[dict], duplicates: list[int]):
+    [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines if printDuplicatesEquals(duplicates, x.get(ID))]
+
+def printDuplicatesEquals(duplicates: list[dict], id: int):
+    if PRINT_DUPLICATES: return id in duplicates
+    return id not in duplicates
 
 # check whether 2 logins are the same username & password match
 def equals(user1: dict, user2: dict):
@@ -155,7 +160,7 @@ if __name__ == '__main__':
     # printDuplicates(duplicates2)
     duplicates = groupDuplicateIDs(duplicateUsernames)
     # [print(x) for x in duplicates]
-    printDUplicates(lines, duplicates)
+    printDuplicates(lines, duplicates)
 
     print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicateURIs)}", f"dif = {len(lines) - len(duplicateURIs)}")
     print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
