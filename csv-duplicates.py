@@ -108,6 +108,7 @@ def groupDuplicateIDs(list: list[dict]) -> list[int]:
 def printDuplicates(lines: list[dict], duplicates: list[int]):
     [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines if printDuplicatesEquals(duplicates, x.get(ID))]
 
+# check of details are equals by matching ID before final grouping
 def printDuplicatesEquals(duplicates: list[dict], id: int):
     if PRINT_DUPLICATES: return id in duplicates
     return id not in duplicates
