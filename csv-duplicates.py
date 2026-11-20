@@ -66,7 +66,8 @@ def groupByKey(lines: list[dict], key: str) -> list[dict]:
                 duplicates.append(lines[outer])    
 
             duplicates.append(lines[inner])
-            if key is "password":printGroups(added, getURI(lines[outer]))
+            printGroups(added, getURI(lines[outer]))
+            # if key == "password":printGroups(added, getURI(lines[outer]))
             added = True
 
 
@@ -110,11 +111,7 @@ if __name__ == '__main__':
     duplicates = groupByURI(lines)   
     # print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
 
-    # group by URI
+    # group by username
     duplicates2 = groupByKey(duplicates, "username")   
-    # print("username ->", f"total - {len(duplicates)}", f"duplicates - {len(duplicates2)}", f"dif = {len(duplicates) - len(duplicates2)}")
-
-     # group by URI
-    duplicates3 = groupByKey(duplicates2, "password")   
-    # print("password ->", f"total - {len(duplicates2)}", f"duplicates - {len(duplicates3)}", f"dif = {len(duplicates2) - len(duplicates3)}")
-    print("password ->", f"total - {len(lines)}", f"duplicates - {len(duplicates3)}", f"dif = {len(lines) - len(duplicates3)}")
+    print("USERNAME ->", f"total - {len(duplicates)}", f"duplicates - {len(duplicates2)}", f"dif = {len(duplicates) - len(duplicates2)}")
+    print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicates2)}", f"dif = {len(lines) - len(duplicates2)}")
