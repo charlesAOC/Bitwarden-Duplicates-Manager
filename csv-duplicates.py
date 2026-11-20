@@ -65,7 +65,7 @@ def groupByKey(lines: list[dict], key: str) -> list[dict]:
                 duplicates.append(lines[outer])    
 
             duplicates.append(lines[inner])
-            printGroups(added, getURI(lines[outer]))
+            # printGroups(added, getURI(lines[outer]))
             added = True
 
 
@@ -85,11 +85,16 @@ def printGroups(added: bool, URI: str):
 def getURI(line: dict) -> str:
     return line.get("login").get("uris")[0].get("uri")
 
+def printDuplicates(list: list[dict]):
+    for i in list:
+        for k,v in i.items():
+            print(f"{k}: {v}")
+        print("\n")
+
 
 if __name__ == '__main__':
     # retrieve args
     args = sys.argv[1:]  # Exclude the script name
-    print("Arguments:", args)
     fileName = args[0]
 
     # open file (json) and store details in a list 2x2
@@ -106,5 +111,8 @@ if __name__ == '__main__':
 
     # group by username
     duplicates2 = groupByKey(duplicates, "username")   
+
+    printDuplicates(duplicates2)
+
     print("USERNAME ->", f"total - {len(duplicates)}", f"duplicates - {len(duplicates2)}", f"dif = {len(duplicates) - len(duplicates2)}")
     print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicates2)}", f"dif = {len(lines) - len(duplicates2)}")
