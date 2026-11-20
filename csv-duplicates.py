@@ -31,7 +31,6 @@ def groupByURI(lines: list[dict]) -> list[dict]:
 
     while outer < len(lines) - 1:
         added = False
-        space = len(getURI(lines[outer]))
         inner = outer + 1
 
         while inner < len(lines) and getURI(lines[inner]).startswith(getURI(lines[outer])):
@@ -47,7 +46,36 @@ def groupByURI(lines: list[dict]) -> list[dict]:
 
         outer = inner                  
 
-    return duplicates    
+    return duplicates 
+
+
+def groupByKey(lines: list[dict], key: str) -> list[dict]:
+    duplicates = []
+    outer = 0
+
+    while outer < len(lines) - 1:
+        added = False
+        inner = outer + 1
+
+        user1:str = lines[outer].get("login").get(key)
+        user2:str = lines[inner].get("login").get(key)
+
+        while inner < len(lines) and user1 is not None and user2 is not None and user2.startswith(user1):
+            # add comparator only on the first match
+            if not added:
+                duplicates.append(lines[outer])    
+
+            duplicates.append(lines[inner])
+            if key is "password":printGroups(added, getURI(lines[outer]))
+            added = True
+
+
+            inner = inner + 1
+            if inner < len(lines): user2 = lines[inner].get("login").get(key)
+
+        outer = inner                  
+
+    return duplicates 
 
 
 def printGroups(added: bool, URI: str):
@@ -67,17 +95,26 @@ if __name__ == '__main__':
 
     # open file (json) and store details in a list 2x2
     lines = getFileData(fileName)
-    print(len(lines))
+    #print(len(lines))
 
     # filter out all type ones
-    lines: list[dict] = filterTypes(lines)
-    print(len(lines))
+    lines = filterTypes(lines)
+    #print(len(lines))
     
     # sort by login.uris.uri
     lines = sortByURI(lines)
-    print(len(lines))
+    #print(len(lines))
         
 
     # group by URI
     duplicates = groupByURI(lines)   
-    print(f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
+    # print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
+
+    # group by URI
+    duplicates2 = groupByKey(duplicates, "username")   
+    # print("username ->", f"total - {len(duplicates)}", f"duplicates - {len(duplicates2)}", f"dif = {len(duplicates) - len(duplicates2)}")
+
+     # group by URI
+    duplicates3 = groupByKey(duplicates2, "password")   
+    # print("password ->", f"total - {len(duplicates2)}", f"duplicates - {len(duplicates3)}", f"dif = {len(duplicates2) - len(duplicates3)}")
+    print("password ->", f"total - {len(lines)}", f"duplicates - {len(duplicates3)}", f"dif = {len(lines) - len(duplicates3)}")
