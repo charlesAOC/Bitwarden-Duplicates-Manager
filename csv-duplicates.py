@@ -39,7 +39,6 @@ def groupByURI(lines: list[dict]) -> list[dict]:
                 duplicates.append(lines[outer])    
 
             duplicates.append(lines[inner])
-            # printGroups(added, getURI(lines[outer]))
             added = True
 
             inner = inner + 1
@@ -67,7 +66,6 @@ def groupByKey(lines: list[dict], key: str) -> list[dict]:
 
             duplicates.append(lines[inner])
             printGroups(added, getURI(lines[outer]))
-            # if key == "password":printGroups(added, getURI(lines[outer]))
             added = True
 
 
@@ -96,20 +94,15 @@ if __name__ == '__main__':
 
     # open file (json) and store details in a list 2x2
     lines = getFileData(fileName)
-    #print(len(lines))
 
     # filter out all type ones
     lines = filterTypes(lines)
-    #print(len(lines))
     
     # sort by login.uris.uri
     lines = sortByURI(lines)
-    #print(len(lines))
-        
 
     # group by URI
     duplicates = groupByURI(lines)   
-    # print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
 
     # group by username
     duplicates2 = groupByKey(duplicates, "username")   
