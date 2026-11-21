@@ -1,5 +1,6 @@
 import sys
 import json
+import csv
 
 TYPE = 1    # 1 for logins | 2 for notes
 USERNAME = 'username'
@@ -14,22 +15,22 @@ KEY_LIST: list[str] = []
 # configs
 SHOW_DUPLICATES = True      # TRUE - print list of duplicates | FALSE - print list of non duplicates
 SHOW_IMPORTANT = False      # TRUE - sets important keys as duplicates | FALSE - set important keys as non-duplicates
-SHOW_STATS = True           # TRUE - print stats after running script
-PRINT_JSON = True           # TRUE - outout to json
+SHOW_STATS = False          # TRUE - print stats after running script
+PRINT_JSON = False          # TRUE - outout to json
 PRINT_CSV = False           # TRUE - output to csv
 PRINT_TXT = True            # TRUE - output to text file
 DELIMITER = '+'             # delimeter for multi-key flags
 
 # flags
 show_imp = '-i'
-hide_imp = '-o'
+hide_imp = '-ii'
 show_dup = '-d'
 hide_dup = "-n"     # non-duplicates
-show_stat = '-t'
-hide_stat = '-u'
+show_stat = '-s'
+hide_stat = '-ss'
 text = '-txt'
 json_ = '-json'
-csv = '-csv'
+csv_ = '-csv'
 help = '-h'
 keys = 'key='
 dels = 'del='
@@ -46,6 +47,7 @@ FLAGS = {
         , dels: "'del=' set the delimiter (default '+') for multi key support eg. apple+orange+grape"
         , json_: "export to json file [output.json]"
         , text: "export to sysout [default]"
+        , csv_: "export to csv file [output.csv]"
         }
 
 
@@ -166,6 +168,13 @@ def printJSON(lines: list[dict]) -> None:
     with open("output.json", 'w') as file:
         file.writelines(json.dumps(lines, indent=2))
 
+# output to csv file
+def printCSV(lines: list[dict]) -> None:
+    with open("output.csv", "w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=lines[0].keys())
+        writer.writeheader()
+        writer.writerows(lines)
+
 # #############################
 # HELPER FUNCTIONS
 # ############################ 
@@ -250,7 +259,8 @@ if __name__ == '__main__':
     # open file and store details in a list[dict]
     # filter out all none type 1 (non logins)   
     # sort by login.uris.uri
-    lines = sortByURI(filterLoginsOnly(getFileData(fileName)))
+    initLines = getFileData(fileName)
+    lines = sortByURI(filterLoginsOnly(initLines))
 
     # group by URI (only group URI with multiple entries)
     duplicateURIs = groupDuplicateURI(lines)   
@@ -261,15 +271,13 @@ if __name__ == '__main__':
     # printDuplicates(duplicates2)
     duplicates = extractDuplicateID(duplicateUsernames)
 
-    final_list = extractDuplicateList(lines, duplicates)
+    # list to export
+    final_list = extractDuplicateList(initLines, duplicates)
 
-    # print duplicates to sys out
+    # export duplicates
     if PRINT_TXT: printTXT(final_list)
-
     if PRINT_JSON: printJSON(final_list)
-
-    # TODO
-    if PRINT_CSV: pass
+    if PRINT_CSV and len(final_list): printCSV(final_list)
 
     # print duplicates stats
     if SHOW_STATS:
