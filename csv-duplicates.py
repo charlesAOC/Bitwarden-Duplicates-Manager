@@ -245,7 +245,7 @@ if __name__ == '__main__':
         print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
         print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
         print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
-        print(f"\nTOtal accounts to delete -> {len(duplicates)}")
+        print(f"TOtal accounts to delete -> {len(duplicates)}")
 
     # end program
     sys.exit(0)
