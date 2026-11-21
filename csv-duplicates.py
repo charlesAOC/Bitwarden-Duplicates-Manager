@@ -171,7 +171,7 @@ def printJSON(lines: list[dict]) -> None:
 # output to csv file
 def printCSV(lines: list[dict]) -> None:
     with open("output.csv", "w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=lines[0].keys())
+        writer = csv.DictWriter(file, fieldnames=set([key for line in lines for key in line]))
         writer.writeheader()
         writer.writerows(lines)
 
