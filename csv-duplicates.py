@@ -246,7 +246,7 @@ if __name__ == '__main__':
         if flag.startswith(dels): DELIMITER = flag[len(dels):]
 
         if flag == json_: PRINT_JSON = True
-        if flag == csv: PRINT_CSV = True
+        if flag == csv_: PRINT_CSV = True
         if flag == text: PRINT_TXT = True
 
     if fileName is None: 
