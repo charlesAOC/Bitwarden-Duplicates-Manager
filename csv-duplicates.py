@@ -237,9 +237,6 @@ if __name__ == '__main__':
 
         if flag == hide_stat: SHOW_STATS = False
         if flag == show_stat: SHOW_STATS = True     # (def)
-
-        if flag == text: SHOW_IMPORTANT = True
-        if flag == json_: SHOW_IMPORTANT = True     # (def)
         
         if flag == help: printHelp()
         if flag.endswith(FILE_TYPE): fileName = flag
