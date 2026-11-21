@@ -1,4 +1,3 @@
-
 import sys
 import json
 
@@ -28,7 +27,7 @@ text = '-txt'
 json_ = '-json'
 help = '-h'
 keys = 'key='
-
+dels = 'del='
 
 FLAGS = {
           show_imp: "show duplicates"
@@ -39,6 +38,7 @@ FLAGS = {
         , hide_stat: "show stats"        
         , help: "help"
         , keys: "'key=' followed by a single key you want to keep e.g. key=apple if your key is apple"
+        , dels: "'del=' set the delimiter (default '+') for multi key support eg. apple+orange+grape"
         }
 
 
@@ -193,17 +193,8 @@ def printGroups(added: bool, URI: str) -> None:
 
 # print help prompt
 def printHelp():
-    [print(f"{k} <--> {v}") for k,v in FLAGS.items()]
+    [print(f"{k} ---> {v}") for k,v in FLAGS.items()]
     sys.exit(0)
-
-
-# get important key from sys args
-def getKey(arg: str) -> str:
-        return arg[4:]
-
-
-def getKeys(arg: str) -> list[str]:
-    return [x.strip() for x in arg.split(DELIMITER)]
 
 
 if __name__ == '__main__':
@@ -226,9 +217,9 @@ if __name__ == '__main__':
         if flag == help: printHelp()
         if flag.endswith('.json'): fileName = flag
 
-        if flag.count(DELIMITER): KEY_LIST = getKeys(flag)
-        if flag.startswith("key="): KEY = getKey(flag)
-
+        if flag.count(DELIMITER): KEY_LIST = [x.strip() for x in flag.split(DELIMITER)]
+        if flag.startswith(keys): KEY = flag[len(keys):]
+        if flag.startswith(dels): DELIMITER = flag[len(dels):]
 
     if fileName is None: 
         print("Source file not provided. Please provide a .json file")
