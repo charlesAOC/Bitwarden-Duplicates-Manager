@@ -5,40 +5,47 @@ TYPE = 1    # 1 for logins | 2 for notes
 USERNAME = 'username'
 PASSWORD = 'password'
 ID = 'id'
-DELIMITER = '+'
+FILE_TYPE = '.json'
 
 # important keys
 KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
 KEY_LIST: list[str] = []
 
 # configs
-SHOW_DUPLICATES = True     # TRUE - print list of duplicates | FALSE - print list of non duplicates
+SHOW_DUPLICATES = True      # TRUE - print list of duplicates | FALSE - print list of non duplicates
 SHOW_IMPORTANT = False      # TRUE - sets important keys as duplicates | FALSE - set important keys as non-duplicates
 SHOW_STATS = True           # TRUE - print stats after running script
+PRINT_JSON = True           # TRUE - outout to json
+PRINT_CSV = False           # TRUE - output to csv
+PRINT_TXT = True            # TRUE - output to text file
+DELIMITER = '+'             # delimeter for multi-key flags
 
 # flags
 show_imp = '-i'
 hide_imp = '-o'
 show_dup = '-d'
-hide_dup = "-n"
+hide_dup = "-n"     # non-duplicates
 show_stat = '-t'
 hide_stat = '-u'
 text = '-txt'
 json_ = '-json'
+csv = '-csv'
 help = '-h'
 keys = 'key='
 dels = 'del='
 
 FLAGS = {
-          show_imp: "show duplicates"
-        , hide_imp: "hide duplicates"
-        , show_dup: "include important keys"
-        , hide_dup: "exclude important keys"
+          show_imp: "include important keys"
+        , hide_imp: "exclude important keys"
+        , show_dup: "show duplicates"
+        , hide_dup: "show non-duplicates"
         , show_stat: "hide stats"        
         , hide_stat: "show stats"        
         , help: "help"
         , keys: "'key=' followed by a single key you want to keep e.g. key=apple if your key is apple"
         , dels: "'del=' set the delimiter (default '+') for multi key support eg. apple+orange+grape"
+        , json_: "export to json file [output.json]"
+        , text: "export to sysout [default]"
         }
 
 
@@ -117,7 +124,7 @@ def groupByKey(lines: list[dict], key: str) -> list[dict]:
 
 
 # extract duplicate IDs
-def extractDuplicates(lines: list[dict]) -> list[int]:
+def extractDuplicateID(lines: list[dict]) -> list[int]:
     duplicates = []
 
     outer = 0    
@@ -144,9 +151,20 @@ def extractDuplicates(lines: list[dict]) -> list[int]:
     return duplicates 
 
 
+# extrant final list based on SHOW_DUPLICATES
+def extractDuplicateList(lines: list[dict], duplicates: list[int]) -> list[dict]:
+    return [line for line in lines if printFilter(duplicates, line.get(ID))]
+
+
 # print output to sys out
-def printDuplicates(lines: list[dict], duplicates: list[int]) -> None:
-    [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines if printFilter(duplicates, x.get(ID))]
+def printTXT(lines: list[dict] ) -> None:
+    [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines]
+
+
+# output to json file
+def printJSON(lines: list[dict]) -> None:
+    with open("output.json", 'w') as file:
+        file.writelines(json.dumps(lines, indent=2))
 
 # #############################
 # HELPER FUNCTIONS
@@ -215,18 +233,19 @@ if __name__ == '__main__':
         if flag == json_: SHOW_IMPORTANT = True     # (def)
         
         if flag == help: printHelp()
-        if flag.endswith('.json'): fileName = flag
+        if flag.endswith(FILE_TYPE): fileName = flag
 
         if flag.count(DELIMITER): KEY_LIST = [x.strip() for x in flag.split(DELIMITER)]
         if flag.startswith(keys): KEY = flag[len(keys):]
         if flag.startswith(dels): DELIMITER = flag[len(dels):]
 
+        if flag == json_: PRINT_JSON = True
+        if flag == csv: PRINT_CSV = True
+        if flag == text: PRINT_TXT = True
+
     if fileName is None: 
         print("Source file not provided. Please provide a .json file")
         sys.exit(1)
-
-    #TODO
-    # txt/json output
 
     # open file and store details in a list[dict]
     # filter out all none type 1 (non logins)   
@@ -240,10 +259,17 @@ if __name__ == '__main__':
     duplicateUsernames = groupByKey(duplicateURIs, USERNAME)   
 
     # printDuplicates(duplicates2)
-    duplicates = extractDuplicates(duplicateUsernames)
+    duplicates = extractDuplicateID(duplicateUsernames)
+
+    final_list = extractDuplicateList(lines, duplicates)
 
     # print duplicates to sys out
-    printDuplicates(lines, duplicates)
+    if PRINT_TXT: printTXT(final_list)
+
+    if PRINT_JSON: printJSON(final_list)
+
+    # TODO
+    if PRINT_CSV: pass
 
     # print duplicates stats
     if SHOW_STATS:
