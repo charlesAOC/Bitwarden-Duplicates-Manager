@@ -6,6 +6,7 @@ TYPE = 1    # 1 for logins | 2 for notes
 USERNAME = 'username'
 PASSWORD = 'password'
 ID = 'id'
+DELIMITER = ';'
 
 # important keys TODO make this accept multiple
 IMPORTANT_KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
@@ -25,6 +26,7 @@ hide_stat = '-u'
 text = '-txt'
 json_ = '-json'
 help = '-h'
+keys = 'key='
 
 
 FLAGS = {
@@ -35,6 +37,7 @@ FLAGS = {
         , show_stat: "hide stats"        
         , hide_stat: "show stats"        
         , help: "help"
+        , keys: "'key=' followed by a single key you want to keep e.g. key=apple if your key is apple"
         }
 
 
@@ -184,16 +187,15 @@ def printGroups(added: bool, URI: str) -> None:
 # print help prompt
 def printHelp():
     [print(f"{k} <--> {v}") for k,v in FLAGS.items()]
+    sys.exit(0)
 
 
 if __name__ == '__main__':
-    # retrieve flags and filename
-    *flags, fileName = sys.argv[1:]
-
-    isHelp = False
+    fileName = None
 
     # configure script
-    for flag in flags:
+    for flag in  sys.argv[1:]:
+        print(flag)
         if flag == show_imp: SHOW_IMPORTANT = True
         if flag == hide_imp: SHOW_IMPORTANT = False
         
@@ -205,12 +207,17 @@ if __name__ == '__main__':
 
         if flag == text: SHOW_IMPORTANT = True
         if flag == json_: SHOW_IMPORTANT = True
-        if flags == help : isHelp = True
+        
+        if flag == help: printHelp()
+        if flag.endswith('.json'): fileName = flag
+
+        if flag.count(DELIMITER): pass #TODO
+        if flag.startswith("key="): pass
 
 
-    if isHelp or fileName == help:
-        printHelp()
-        sys.exit(0)
+    if fileName is None: 
+        print("Source file not provided. Please provide a .json file")
+        sys.exit(1)
 
     #TODO
     # txt/json output
@@ -239,3 +246,6 @@ if __name__ == '__main__':
         print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
         print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
         print(f"\nTOtal accounts to delete -> {len(duplicates)}")
+
+    # end program
+    sys.exit(0)
