@@ -6,10 +6,37 @@ TYPE = 1    # 1 for logins | 2 for notes
 USERNAME = 'username'
 PASSWORD = 'password'
 ID = 'id'
+
+# important keys TODO make this accept multiple
 IMPORTANT_KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
+
+# configs
 SHOW_DUPLICATES = True     # TRUE - print list of duplicates | FALSE - print list of non duplicates
 SHOW_IMPORTANT = False      # TRUE - sets important keys as duplicates | FALSE - set important keys as non-duplicates
 SHOW_STATS = True           # TRUE - print stats after running script
+
+# flags
+show_imp = '-i'
+hide_imp = '-o'
+show_dup = '-d'
+hide_dup = "-n"
+show_stat = '-t'
+hide_stat = '-u'
+text = '-txt'
+json_ = '-json'
+help = '-h'
+
+
+FLAGS = {
+          show_imp: "show duplicates"
+        , hide_imp: "hide duplicates"
+        , show_dup: "include important keys"
+        , hide_dup: "exclude important keys"
+        , show_stat: "hide stats"        
+        , hide_stat: "show stats"        
+        , help: "help"
+        }
+
 
 # get the data from a file
 def getFileData(filename : str) -> list[dict]:
@@ -154,32 +181,60 @@ def printGroups(added: bool, URI: str) -> None:
     print(f"{URI if not added else " " * len(URI)} - {URI}", "\n")
 
 
+# print help prompt
+def printHelp():
+    [print(f"{k} <--> {v}") for k,v in FLAGS.items()]
+
+
 if __name__ == '__main__':
-    # retrieve args
-    args = sys.argv[1:]  # Exclude the script name
-    fileName = args[0]
+    # retrieve flags and filename
+    *flags, fileName = sys.argv[1:]
 
-    # open file and store details in a list[dict]
-    # filter out all none type 1 (non logins)   
-    # sort by login.uris.uri
-    lines = sortByURI(filterLoginsOnly(getFileData(fileName)))
+    isHelp = False
 
-    # group by URI (only group URI with multiple entries)
-    duplicateURIs = groupDuplicateURI(lines)   
+    # configure script
+    for flag in flags:
+        if flag == show_imp: SHOW_IMPORTANT = True
+        if flag == hide_imp: SHOW_IMPORTANT = False
+        
+        if flag == hide_dup: SHOW_DUPLICATES = False
+        if flag == show_dup: SHOW_DUPLICATES = True
 
-    # group by username (further filtering for duplicates [uri + username = same account])
-    duplicateUsernames = groupByKey(duplicateURIs, USERNAME)   
+        if flag == hide_stat: SHOW_STATS = False
+        if flag == show_stat: SHOW_STATS = True
 
-    # printDuplicates(duplicates2)
-    duplicates = extractDuplicates(duplicateUsernames)
+        if flag == text: SHOW_IMPORTANT = True
+        if flag == json_: SHOW_IMPORTANT = True
+        if flags == help : isHelp = True
 
-    # print duplicates to sys out
-    printDuplicates(lines, duplicates)
+    if isHelp or fileName == help:
+        printHelp()
+    else:    
 
-    # print duplicates stats
-    if SHOW_STATS:
-        print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicateURIs)}", f"dif = {len(lines) - len(duplicateURIs)}")
-        print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
-        print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
-        print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
-        print(f"\nTOtal accounts to delete -> {len(duplicates)}") 
+        #TODO
+        # txt/json output
+
+        # open file and store details in a list[dict]
+        # filter out all none type 1 (non logins)   
+        # sort by login.uris.uri
+        lines = sortByURI(filterLoginsOnly(getFileData(fileName)))
+
+        # group by URI (only group URI with multiple entries)
+        duplicateURIs = groupDuplicateURI(lines)   
+
+        # group by username (further filtering for duplicates [uri + username = same account])
+        duplicateUsernames = groupByKey(duplicateURIs, USERNAME)   
+
+        # printDuplicates(duplicates2)
+        duplicates = extractDuplicates(duplicateUsernames)
+
+        # print duplicates to sys out
+        printDuplicates(lines, duplicates)
+
+        # print duplicates stats
+        if SHOW_STATS:
+            print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicateURIs)}", f"dif = {len(lines) - len(duplicateURIs)}")
+            print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
+            print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
+            print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
+            print(f"\nTOtal accounts to delete -> {len(duplicates)}")
