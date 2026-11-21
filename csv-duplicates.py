@@ -104,17 +104,25 @@ def groupDuplicateIDs(list: list[dict]) -> list[int]:
 
     return duplicates 
 
+# TODO function to group none duplucates
+def groupNoneDuplicates(lines: list[dict]):
+    pass
+
 # prints the list of duplicate accounts
-def printDuplicates(lines: list[dict], duplicates: list[int]):
+def printDuplicates(lines: list[dict], duplicates: list[int]) -> None:
     [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines if printDuplicatesEquals(duplicates, x.get(ID))]
 
+# #############################
+# HELPER FUNCTIONS
+# ############################ 
+
 # check of details are equals by matching ID before final grouping
-def printDuplicatesEquals(duplicates: list[dict], id: int):
+def printDuplicatesEquals(duplicates: list[dict], id: int) -> bool:
     if PRINT_DUPLICATES: return id in duplicates
     return id not in duplicates
 
 # check whether 2 logins are the same username & password match
-def equals(user1: dict, user2: dict):
+def equals(user1: dict, user2: dict) -> bool:
     if user1 is not None and user2 is not None:
         if user1.get(USERNAME) == user2.get(USERNAME):
             if user1.get(PASSWORD) == user2.get(PASSWORD):
@@ -122,7 +130,7 @@ def equals(user1: dict, user2: dict):
     return False
 
 # helpre function for debugging
-def printGroups(added: bool, URI: str):
+def printGroups(added: bool, URI: str) -> None:
     print(f"{URI if not added else " " * len(URI)} - {URI}", "\n")
 
 #return the URI of a list item~~
@@ -130,7 +138,7 @@ def getURI(line: dict) -> str:
     return line.get("login").get("uris")[0].get("uri")
 
 # prints the duplicates list data line by line
-def printDuplicatesHelper(list: list[dict]):
+def printDuplicatesHelper(list: list[dict]) -> None:
     for i in list:
         for k,v in i.items():
             print(f"{k}: {v}")
@@ -159,7 +167,8 @@ if __name__ == '__main__':
 
     # printDuplicates(duplicates2)
     duplicates = groupDuplicateIDs(duplicateUsernames)
-    # [print(x) for x in duplicates]
+
+    # print duplicates to sys out
     printDuplicates(lines, duplicates)
 
     print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicateURIs)}", f"dif = {len(lines) - len(duplicateURIs)}")
