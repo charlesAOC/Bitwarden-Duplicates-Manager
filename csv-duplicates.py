@@ -7,7 +7,8 @@ USERNAME = 'username'
 PASSWORD = 'password'
 ID = 'id'
 IMPORTANT_KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
-PRINT_DUPLICATES = True     # set to false to print list of non duplicates
+SHOW_DUPLICATES = True     # TRUE - print list of duplicates | FALSE - print list of non duplicates
+SHOW_STATS = True          # TRUE - print stats after running script
 
 # get the data from a file
 def getFileData(filename : str) -> list[dict]:
@@ -20,7 +21,7 @@ def getFileData(filename : str) -> list[dict]:
 
 
 # filter out non-login data
-def filterTypes(lines: list[dict]) -> list[dict]:
+def filterLoginsOnly(lines: list[dict]) -> list[dict]:
     return [i for i in lines if i.get('type') == TYPE]
 
 
@@ -30,7 +31,7 @@ def sortByURI(lines: list[dict]) -> list[dict]:
 
 
 # find all URI duplictes. return them as list (group by URI)
-def groupByURI(lines: list[dict]) -> list[dict]:
+def groupDuplicateURI(lines: list[dict]) -> list[dict]:
     duplicates = []
     outer = 0
 
@@ -52,7 +53,8 @@ def groupByURI(lines: list[dict]) -> list[dict]:
 
     return duplicates 
 
-# group data by key
+
+# group data by login key [username by default]
 def groupByKey(lines: list[dict], key: str) -> list[dict]:
     duplicates = []
     outer = 0
@@ -81,8 +83,9 @@ def groupByKey(lines: list[dict], key: str) -> list[dict]:
 
     return duplicates 
 
-# extract ID of duplicates to be deleted
-def groupDuplicateIDs(list: list[dict]) -> list[int]:
+
+# extract duplicate IDs
+def extractDuplicates(list: list[dict]) -> list[int]:
     duplicates = []
 
     outer = 0    
@@ -93,9 +96,9 @@ def groupDuplicateIDs(list: list[dict]) -> list[int]:
         user1:dict = lines[outer].get("login")
         if inner < len(lines): user2:dict = lines[inner].get("login")
 
-        while inner < len(lines) and equals(user1, user2):
+        while inner < len(lines) and equalLogins(user1, user2):
             if lines[inner].get(ID) == IMPORTANT_KEY or lines[outer].get(ID) == IMPORTANT_KEY:
-                duplicates.append(lines[outer].get(ID) if lines[inner].get(ID) == IMPORTANT_KEY else lines[inner].get(ID) == IMPORTANT_KEY  )
+                duplicates.append(lines[outer].get(ID) if groupFilter(inner) else lines[inner].get(ID))
             else: duplicates.append(lines[inner].get(ID))
             inner = inner + 1
             if inner < len(lines): user2 = lines[inner].get("login")
@@ -104,45 +107,54 @@ def groupDuplicateIDs(list: list[dict]) -> list[int]:
 
     return duplicates 
 
-# TODO function to group none duplucates
-def groupNoneDuplicates(lines: list[dict]):
-    pass
 
-# prints the list of duplicate accounts
+# print output to sys out
 def printDuplicates(lines: list[dict], duplicates: list[int]) -> None:
-    [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines if printDuplicatesEquals(duplicates, x.get(ID))]
+    [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines if printFilter(duplicates, x.get(ID))]
 
 # #############################
 # HELPER FUNCTIONS
 # ############################ 
 
-# check of details are equals by matching ID before final grouping
-def printDuplicatesEquals(duplicates: list[dict], id: int) -> bool:
-    if PRINT_DUPLICATES: return id in duplicates
+
+# protects important keys depending on display conditins
+# determines where the important keys go
+# if you want to display duplicates it excludes keys
+# if you want to display none duplicates to displays keys
+def groupFilter(inner: int) -> bool:
+    if lines[inner].get(ID) == IMPORTANT_KEY and SHOW_DUPLICATES:
+        return True         #show outer
+    if lines[inner].get(ID) != IMPORTANT_KEY and not SHOW_DUPLICATES:
+        return True         #show outer
+
+    return False        #show inner
+
+
+# check whether 2 entries are the same [ID]
+def printFilter(duplicates: list[dict], id: int) -> bool:
+    if SHOW_DUPLICATES: return id in duplicates
     return id not in duplicates
 
-# check whether 2 logins are the same username & password match
-def equals(user1: dict, user2: dict) -> bool:
+
+# check whether 2 logins are the same [username, password]
+def equalLogins(user1: dict, user2: dict) -> bool:
     if user1 is not None and user2 is not None:
         if user1.get(USERNAME) == user2.get(USERNAME):
             if user1.get(PASSWORD) == user2.get(PASSWORD):
                 return True
     return False
 
-# helpre function for debugging
-def printGroups(added: bool, URI: str) -> None:
-    print(f"{URI if not added else " " * len(URI)} - {URI}", "\n")
 
-#return the URI of a list item~~
+#return the URI of a list item
 def getURI(line: dict) -> str:
     return line.get("login").get("uris")[0].get("uri")
 
-# prints the duplicates list data line by line
-def printDuplicatesHelper(list: list[dict]) -> None:
-    for i in list:
-        for k,v in i.items():
-            print(f"{k}: {v}")
-        print("\n")
+
+# helpre function for debugging
+# URI - URI
+#     - URI
+def printGroups(added: bool, URI: str) -> None:
+    print(f"{URI if not added else " " * len(URI)} - {URI}", "\n")
 
 
 if __name__ == '__main__':
@@ -150,29 +162,27 @@ if __name__ == '__main__':
     args = sys.argv[1:]  # Exclude the script name
     fileName = args[0]
 
-    # open file (json) and store details in a list 2x2
-    lines = getFileData(fileName)
-
-    # filter out all type ones
-    lines = filterTypes(lines)
-    
+    # open file and store details in a list[dict]
+    # filter out all none type 1 (non logins)   
     # sort by login.uris.uri
-    lines = sortByURI(lines)
+    lines = sortByURI(filterLoginsOnly(getFileData(fileName)))
 
-    # group by URI
-    duplicateURIs = groupByURI(lines)   
+    # group by URI (only group URI with multiple entries)
+    duplicateURIs = groupDuplicateURI(lines)   
 
-    # group by username
+    # group by username (further filtering for duplicates [uri + username = same account])
     duplicateUsernames = groupByKey(duplicateURIs, USERNAME)   
 
     # printDuplicates(duplicates2)
-    duplicates = groupDuplicateIDs(duplicateUsernames)
+    duplicates = extractDuplicates(duplicateUsernames)
 
     # print duplicates to sys out
     printDuplicates(lines, duplicates)
 
-    print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicateURIs)}", f"dif = {len(lines) - len(duplicateURIs)}")
-    print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
-    print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
-    print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
-    print(f"\nTOtal accounts to delete -> {len(duplicates)}")
+    # print duplicates stats
+    if SHOW_STATS:
+        print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicateURIs)}", f"dif = {len(lines) - len(duplicateURIs)}")
+        print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
+        print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
+        print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
+        print(f"\nTOtal accounts to delete -> {len(duplicates)}")
