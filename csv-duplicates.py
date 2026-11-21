@@ -207,34 +207,35 @@ if __name__ == '__main__':
         if flag == json_: SHOW_IMPORTANT = True
         if flags == help : isHelp = True
 
+
     if isHelp or fileName == help:
         printHelp()
-    else:    
+        sys.exit(0)
 
-        #TODO
-        # txt/json output
+    #TODO
+    # txt/json output
 
-        # open file and store details in a list[dict]
-        # filter out all none type 1 (non logins)   
-        # sort by login.uris.uri
-        lines = sortByURI(filterLoginsOnly(getFileData(fileName)))
+    # open file and store details in a list[dict]
+    # filter out all none type 1 (non logins)   
+    # sort by login.uris.uri
+    lines = sortByURI(filterLoginsOnly(getFileData(fileName)))
 
-        # group by URI (only group URI with multiple entries)
-        duplicateURIs = groupDuplicateURI(lines)   
+    # group by URI (only group URI with multiple entries)
+    duplicateURIs = groupDuplicateURI(lines)   
 
-        # group by username (further filtering for duplicates [uri + username = same account])
-        duplicateUsernames = groupByKey(duplicateURIs, USERNAME)   
+    # group by username (further filtering for duplicates [uri + username = same account])
+    duplicateUsernames = groupByKey(duplicateURIs, USERNAME)   
 
-        # printDuplicates(duplicates2)
-        duplicates = extractDuplicates(duplicateUsernames)
+    # printDuplicates(duplicates2)
+    duplicates = extractDuplicates(duplicateUsernames)
 
-        # print duplicates to sys out
-        printDuplicates(lines, duplicates)
+    # print duplicates to sys out
+    printDuplicates(lines, duplicates)
 
-        # print duplicates stats
-        if SHOW_STATS:
-            print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicateURIs)}", f"dif = {len(lines) - len(duplicateURIs)}")
-            print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
-            print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
-            print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
-            print(f"\nTOtal accounts to delete -> {len(duplicates)}")
+    # print duplicates stats
+    if SHOW_STATS:
+        print("URI ->", f"total - {len(lines)}", f"duplicates - {len(duplicateURIs)}", f"dif = {len(lines) - len(duplicateURIs)}")
+        print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
+        print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
+        print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
+        print(f"\nTOtal accounts to delete -> {len(duplicates)}")
