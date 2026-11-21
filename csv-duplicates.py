@@ -7,6 +7,7 @@ USERNAME = 'username'
 PASSWORD = 'password'
 ID = 'id'
 FILE_TYPE = '.json'
+ITEMS = 'items'
 
 # important keys
 KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
@@ -55,10 +56,8 @@ FLAGS = {
 def getFileData(filename : str) -> list[dict]:
     with open(filename, "r") as file:
         result = json.load(file)
-
-    result = result.get("items")
     
-    return result
+    return (result, result.get(ITEMS))
 
 
 # filter out non-login data
@@ -256,8 +255,8 @@ if __name__ == '__main__':
     # open file and store details in a list[dict]
     # filter out all none type 1 (non logins)   
     # sort by login.uris.uri
-    initLines = getFileData(fileName)
-    lines = sortByURI(filterLoginsOnly(initLines))
+    completeFIle, items = getFileData(fileName)
+    lines = sortByURI(filterLoginsOnly(items))
 
     # group by URI (only group URI with multiple entries)
     duplicateURIs = groupDuplicateURI(lines)   
@@ -269,11 +268,13 @@ if __name__ == '__main__':
     duplicates = extractDuplicateID(duplicateUsernames)
 
     # list to export
-    final_list = extractDuplicateList(initLines, duplicates)
+    final_list = extractDuplicateList(items, duplicates)
+
+    completeFIle[ITEMS] = final_list
 
     # export duplicates
     if PRINT_TXT: printTXT(final_list)
-    if PRINT_JSON: printJSON(final_list)
+    if PRINT_JSON: printJSON(completeFIle)
     if PRINT_CSV and len(final_list): printCSV(final_list)
 
     # print duplicates stats
