@@ -6,10 +6,11 @@ TYPE = 1    # 1 for logins | 2 for notes
 USERNAME = 'username'
 PASSWORD = 'password'
 ID = 'id'
-DELIMITER = ';'
+DELIMITER = '+'
 
-# important keys TODO make this accept multiple
-IMPORTANT_KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
+# important keys
+KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
+KEY_LIST: list[str] = []
 
 # configs
 SHOW_DUPLICATES = True     # TRUE - print list of duplicates | FALSE - print list of non duplicates
@@ -128,7 +129,11 @@ def extractDuplicates(lines: list[dict]) -> list[int]:
         if inner < len(lines): user2:dict = lines[inner].get("login")
 
         while inner < len(lines) and equalLogins(user1, user2):
-            if lines[inner].get(ID) == IMPORTANT_KEY or lines[outer].get(ID) == IMPORTANT_KEY:
+
+            inKey = lines[inner].get(ID) == KEY or lines[outer].get(ID) == KEY
+            inKey_list = len(KEY_LIST) > 0 and (lines[inner].get(ID) in KEY_LIST or lines[outer].get(ID) in KEY_LIST)
+
+            if inKey or inKey_list:
                 duplicates.append(lines[outer].get(ID) if importantKeysFilter(inner, lines) else lines[inner].get(ID))
             else: duplicates.append(lines[inner].get(ID))
             inner = inner + 1
@@ -153,7 +158,9 @@ def printDuplicates(lines: list[dict], duplicates: list[int]) -> None:
 # if you want to display duplicates it excludes keys
 # if you want to display none duplicates to displays keys
 def importantKeysFilter(inner: int, lines : list[dict]) -> bool:
-    if lines[inner].get(ID) == IMPORTANT_KEY: return not SHOW_IMPORTANT
+    listProvided = len(KEY_LIST) > 0
+
+    if lines[inner].get(ID) == KEY or (listProvided and lines[inner].get(ID) in KEY_LIST): return not SHOW_IMPORTANT
     else:  return SHOW_IMPORTANT
 
 
@@ -190,29 +197,37 @@ def printHelp():
     sys.exit(0)
 
 
+# get important key from sys args
+def getKey(arg: str) -> str:
+        return arg[4:]
+
+
+def getKeys(arg: str) -> list[str]:
+    return [x.strip() for x in arg.split(DELIMITER)]
+
+
 if __name__ == '__main__':
     fileName = None
 
     # configure script
     for flag in  sys.argv[1:]:
-        print(flag)
         if flag == show_imp: SHOW_IMPORTANT = True
-        if flag == hide_imp: SHOW_IMPORTANT = False
+        if flag == hide_imp: SHOW_IMPORTANT = False  # (def)
         
         if flag == hide_dup: SHOW_DUPLICATES = False
-        if flag == show_dup: SHOW_DUPLICATES = True
+        if flag == show_dup: SHOW_DUPLICATES = True     # (def)
 
         if flag == hide_stat: SHOW_STATS = False
-        if flag == show_stat: SHOW_STATS = True
+        if flag == show_stat: SHOW_STATS = True     # (def)
 
         if flag == text: SHOW_IMPORTANT = True
-        if flag == json_: SHOW_IMPORTANT = True
+        if flag == json_: SHOW_IMPORTANT = True     # (def)
         
         if flag == help: printHelp()
         if flag.endswith('.json'): fileName = flag
 
-        if flag.count(DELIMITER): pass #TODO
-        if flag.startswith("key="): pass
+        if flag.count(DELIMITER): KEY_LIST = getKeys(flag)
+        if flag.startswith("key="): KEY = getKey(flag)
 
 
     if fileName is None: 
