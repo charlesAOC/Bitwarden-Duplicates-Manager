@@ -8,7 +8,8 @@ PASSWORD = 'password'
 ID = 'id'
 IMPORTANT_KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
 SHOW_DUPLICATES = True     # TRUE - print list of duplicates | FALSE - print list of non duplicates
-SHOW_STATS = True          # TRUE - print stats after running script
+SHOW_IMPORTANT = False      # TRUE - sets important keys as duplicates | FALSE - set important keys as non-duplicates
+SHOW_STATS = True           # TRUE - print stats after running script
 
 # get the data from a file
 def getFileData(filename : str) -> list[dict]:
@@ -85,7 +86,7 @@ def groupByKey(lines: list[dict], key: str) -> list[dict]:
 
 
 # extract duplicate IDs
-def extractDuplicates(list: list[dict]) -> list[int]:
+def extractDuplicates(lines: list[dict]) -> list[int]:
     duplicates = []
 
     outer = 0    
@@ -98,7 +99,7 @@ def extractDuplicates(list: list[dict]) -> list[int]:
 
         while inner < len(lines) and equalLogins(user1, user2):
             if lines[inner].get(ID) == IMPORTANT_KEY or lines[outer].get(ID) == IMPORTANT_KEY:
-                duplicates.append(lines[outer].get(ID) if groupFilter(inner) else lines[inner].get(ID))
+                duplicates.append(lines[outer].get(ID) if importantKeysFilter(inner, lines) else lines[inner].get(ID))
             else: duplicates.append(lines[inner].get(ID))
             inner = inner + 1
             if inner < len(lines): user2 = lines[inner].get("login")
@@ -121,19 +122,15 @@ def printDuplicates(lines: list[dict], duplicates: list[int]) -> None:
 # determines where the important keys go
 # if you want to display duplicates it excludes keys
 # if you want to display none duplicates to displays keys
-def groupFilter(inner: int) -> bool:
-    if lines[inner].get(ID) == IMPORTANT_KEY and SHOW_DUPLICATES:
-        return True         #show outer
-    if lines[inner].get(ID) != IMPORTANT_KEY and not SHOW_DUPLICATES:
-        return True         #show outer
-
-    return False        #show inner
+def importantKeysFilter(inner: int, lines : list[dict]) -> bool:
+    if lines[inner].get(ID) == IMPORTANT_KEY: return not SHOW_IMPORTANT
+    else:  return SHOW_IMPORTANT
 
 
-# check whether 2 entries are the same [ID]
+# chooses what goes to sys out [duplicates or non-duplicates]
 def printFilter(duplicates: list[dict], id: int) -> bool:
-    if SHOW_DUPLICATES: return id in duplicates
-    return id not in duplicates
+    if SHOW_DUPLICATES: return id in duplicates     # prints duplicates to sys out
+    return id not in duplicates         # prints non-duplicates to sys out
 
 
 # check whether 2 logins are the same [username, password]
@@ -185,4 +182,4 @@ if __name__ == '__main__':
         print("USERNAME ->", f"total - {len(duplicateURIs)}", f"duplicates - {len(duplicateUsernames)}", f"dif = {len(duplicateURIs) - len(duplicateUsernames)}")
         print("DUPLICATES ->", f"total - {len(duplicateUsernames)}", f"duplicates - {len(duplicates)}", f"dif = {len(duplicateUsernames) - len(duplicates)}")
         print("FINAL ->", f"total - {len(lines)}", f"duplicates - {len(duplicates)}", f"dif = {len(lines) - len(duplicates)}")
-        print(f"\nTOtal accounts to delete -> {len(duplicates)}")
+        print(f"\nTOtal accounts to delete -> {len(duplicates)}") 
