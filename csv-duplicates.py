@@ -14,13 +14,15 @@ KEY = '1ba00727-d416-4c69-985e-b4fc00781baa'
 KEY_LIST: list[str] = []
 
 # configs
-SHOW_DUPLICATES = True      # TRUE - print list of duplicates | FALSE - print list of non duplicates
+SHOW_DUPLICATES = False     # TRUE - print list of duplicates | FALSE - print list of non duplicates
 SHOW_IMPORTANT = False      # TRUE - sets important keys as duplicates | FALSE - set important keys as non-duplicates
 SHOW_STATS = False          # TRUE - print stats after running script
-PRINT_JSON = False          # TRUE - outout to json
+PRINT_JSON = True           # TRUE - outout to json
 PRINT_CSV = False           # TRUE - output to csv
-PRINT_TXT = True            # TRUE - output to text file
+PRINT_TXT = False           # TRUE - output to text file
 DELIMITER = '+'             # delimeter for multi-key flags
+INPUT_FILE = None           # input file name (.json)
+OUTPUT_FILE = 'output'      # output file name (omit file extension)
 
 # flags
 show_imp = '-i'
@@ -35,6 +37,7 @@ csv_ = '-csv'
 help = '-h'
 keys = 'key='
 dels = 'del='
+out = 'out='
 
 FLAGS = {
           show_imp: "include important keys"
@@ -49,6 +52,7 @@ FLAGS = {
         , json_: "export to json file [output.json]"
         , text: "export to sysout [default]"
         , csv_: "export to csv file [output.csv]"
+        , out: "'out=' followed by the output file name (omit file extension)"
         }
 
 
@@ -157,19 +161,15 @@ def extractDuplicateList(lines: list[dict], duplicates: list[int]) -> list[dict]
     return [line for line in lines if printFilter(duplicates, line.get(ID))]
 
 
-# print output to sys out
-def printTXT(lines: list[dict] ) -> None:
-    [[print(f"{k}: {v} {'\n' if i == len(x.items()) -1 else ""}") for i,(k,v) in enumerate(x.items()) ] for x in lines]
-
-
 # output to json file
-def printJSON(lines: list[dict]) -> None:
-    with open("output.json", 'w') as file:
+def printJSON(lines: list[dict], filename: str) -> None:
+    with open(filename, 'w') as file:
         file.writelines(json.dumps(lines, indent=2))
+
 
 # output to csv file
 def printCSV(lines: list[dict]) -> None:
-    with open("output.csv", "w", newline="") as file:
+    with open(f"{OUTPUT_FILE}.csv", "w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=set([key for line in lines for key in line]))
         writer.writeheader()
         writer.writerows(lines)
@@ -224,38 +224,46 @@ def printHelp():
 
 
 if __name__ == '__main__':
-    fileName = None
 
     # configure script
     for flag in  sys.argv[1:]:
+
+        # important key configs (order matters for defaults if both flags are passed)
         if flag == show_imp: SHOW_IMPORTANT = True
         if flag == hide_imp: SHOW_IMPORTANT = False  # (def)
-        
+
+        # output list configs (same as above)
         if flag == hide_dup: SHOW_DUPLICATES = False
         if flag == show_dup: SHOW_DUPLICATES = True     # (def)
 
+        # statitics config (same as above)
         if flag == hide_stat: SHOW_STATS = False
         if flag == show_stat: SHOW_STATS = True     # (def)
-        
-        if flag == help: printHelp()
-        if flag.endswith(FILE_TYPE): fileName = flag
 
+        # help prompt
+        if flag == help: printHelp()
+
+        # input and output configs (non '-' notation)
+        if flag.endswith(FILE_TYPE): INPUT_FILE = flag
         if flag.count(DELIMITER): KEY_LIST = [x.strip() for x in flag.split(DELIMITER)]
         if flag.startswith(keys): KEY = flag[len(keys):]
         if flag.startswith(dels): DELIMITER = flag[len(dels):]
+        if flag.startswith(out): OUTPUT_FILE = flag[len(out):]
 
+        # supports multiple output formats
         if flag == json_: PRINT_JSON = True
         if flag == csv_: PRINT_CSV = True
         if flag == text: PRINT_TXT = True
 
-    if fileName is None: 
+
+    if INPUT_FILE is None: 
         print("Source file not provided. Please provide a .json file")
         sys.exit(1)
 
     # open file and store details in a list[dict]
     # filter out all none type 1 (non logins)   
     # sort by login.uris.uri
-    completeFIle, items = getFileData(fileName)
+    completeFIle, items = getFileData(INPUT_FILE)
     lines = sortByURI(filterLoginsOnly(items))
 
     # group by URI (only group URI with multiple entries)
@@ -270,11 +278,12 @@ if __name__ == '__main__':
     # list to export
     final_list = extractDuplicateList(items, duplicates)
 
+    # TODO let users choose if they want output in complete format or compact format (text and JSON)
     completeFIle[ITEMS] = final_list
 
     # export duplicates
-    if PRINT_TXT: printTXT(final_list)
-    if PRINT_JSON: printJSON(completeFIle)
+    if PRINT_TXT: printJSON(completeFIle, f"{OUTPUT_FILE}.txt")
+    if PRINT_JSON: printJSON(completeFIle, f"{OUTPUT_FILE}.json")
     if PRINT_CSV and len(final_list): printCSV(final_list)
 
     # print duplicates stats
