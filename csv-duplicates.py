@@ -52,10 +52,10 @@ FLAGS = {
         , help: "help"
         , keys: "'key=' followed by a single key you want to keep e.g. key=apple if your key is apple"
         , dels: "'del=' set the delimiter (default '+') for multi key support eg. apple+orange+grape"
+        , out: "'out=' followed by the output file name (omit file extension)"
         , json_: "export to json file [output.json]"
         , text: "export to sysout [default]"
         , csv_: "export to csv file [output.csv]"
-        , out: "'out=' followed by the output file name (omit file extension)"
         }
 
 
