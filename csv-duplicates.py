@@ -23,6 +23,7 @@ PRINT_TXT = False           # TRUE - output to text file
 DELIMITER = '+'             # delimeter for multi-key flags
 INPUT_FILE = None           # input file name (.json)
 OUTPUT_FILE = 'output'      # output file name (omit file extension)
+STD_OUT = False
 
 # flags
 show_imp = '-i'
@@ -31,6 +32,7 @@ show_dup = '-d'
 hide_dup = "-n"     # non-duplicates
 show_stat = '-s'
 hide_stat = '-ss'
+std_out = '-std'
 text = '-txt'
 json_ = '-json'
 csv_ = '-csv'
@@ -46,6 +48,7 @@ FLAGS = {
         , hide_dup: "show non-duplicates"
         , show_stat: "hide stats"        
         , hide_stat: "show stats"        
+        , std_out: "enable output to standard out (console)"
         , help: "help"
         , keys: "'key=' followed by a single key you want to keep e.g. key=apple if your key is apple"
         , dels: "'del=' set the delimiter (default '+') for multi key support eg. apple+orange+grape"
@@ -254,6 +257,7 @@ if __name__ == '__main__':
         if flag == json_: PRINT_JSON = True
         if flag == csv_: PRINT_CSV = True
         if flag == text: PRINT_TXT = True
+        if flag == std_out: STD_OUT = True
 
 
     if INPUT_FILE is None: 
@@ -285,6 +289,7 @@ if __name__ == '__main__':
     if PRINT_TXT: printJSON(completeFIle, f"{OUTPUT_FILE}.txt")
     if PRINT_JSON: printJSON(completeFIle, f"{OUTPUT_FILE}.json")
     if PRINT_CSV and len(final_list): printCSV(final_list)
+    if STD_OUT: print(json.dumps(completeFIle, indent=2))
 
     # print duplicates stats
     if SHOW_STATS:
