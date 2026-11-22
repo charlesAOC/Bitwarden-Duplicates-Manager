@@ -25,6 +25,7 @@ py bit-duplicates.py file_name.json
 py bit-duplicates.py -i file_name.json -std key=test-key -txt
 ```
 
+```txt
 -i          --->     include important keys (default)
 -ii         --->    exclude important keys
 -d         --->     show duplicates
@@ -39,6 +40,7 @@ del=     --->   'del=' set the delimiter (default '+') for multi key support eg.
 -txt       --->    export to sysout [default]
 -csv      --->    export to csv file [output.csv]
 out=     --->   'out=' followed by the output file name (omit file extension) (default = output)
+```
 
 ## Why I made this script
 
