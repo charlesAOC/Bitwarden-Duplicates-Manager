@@ -11,7 +11,7 @@
 * CLI
 * bitwarden .json source file
 
-## Running script
+## Running the script
 
 ```bash
 py bit-duplicates.py file_name.json
