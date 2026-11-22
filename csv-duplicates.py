@@ -102,7 +102,7 @@ def groupDuplicateURI(lines: list[dict]) -> list[dict]:
 
 
 # group data by login key [username by default]
-def groupByKey(lines: list[dict], key: str) -> list[dict]:
+def groupByUsername(lines: list[dict], key: str) -> list[dict]:
     duplicates = []
     outer = 0
 
@@ -177,15 +177,20 @@ def printCSV(lines: list[dict]) -> None:
         writer.writeheader()
         writer.writerows(lines)
 
+
+# print help prompt
+def printHelp():
+    [print(f"{k} ---> {v}") for k,v in FLAGS.items()]
+    sys.exit(0)
+
+
 # #############################
 # HELPER FUNCTIONS
 # ############################ 
 
 
-# protects important keys depending on display conditins
-# determines where the important keys go
-# if you want to display duplicates it excludes keys
-# if you want to display none duplicates to displays keys
+# protects important keys depending on show_key
+# determines where the important keys go (dups or non-dups)
 def importantKeysFilter(inner: int, lines : list[dict]) -> bool:
     listProvided = len(KEY_LIST) > 0
 
@@ -218,12 +223,6 @@ def getURI(line: dict) -> str:
 #     - URI
 def printGroups(added: bool, URI: str) -> None:
     print(f"{URI if not added else " " * len(URI)} - {URI}", "\n")
-
-
-# print help prompt
-def printHelp():
-    [print(f"{k} ---> {v}") for k,v in FLAGS.items()]
-    sys.exit(0)
 
 
 if __name__ == '__main__':
@@ -274,7 +273,7 @@ if __name__ == '__main__':
     duplicateURIs = groupDuplicateURI(lines)   
 
     # group by username (further filtering for duplicates [uri + username = same account])
-    duplicateUsernames = groupByKey(duplicateURIs, USERNAME)   
+    duplicateUsernames = groupByUsername(duplicateURIs, USERNAME)   
 
     # printDuplicates(duplicates2)
     duplicates = extractDuplicateID(duplicateUsernames)
