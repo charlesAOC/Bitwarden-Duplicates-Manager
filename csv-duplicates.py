@@ -23,7 +23,7 @@ PRINT_TXT = False           # TRUE - output to text file
 DELIMITER = '+'             # delimeter for multi-key flags
 INPUT_FILE = None           # input file name (.json)
 OUTPUT_FILE = 'output'      # output file name (omit file extension)
-STD_OUT = False
+STD_OUT = False             # TRUE - enable printing to console (std out)
 
 # flags
 show_imp = '-i'
